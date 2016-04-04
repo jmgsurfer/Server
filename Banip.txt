@@ -1,0 +1,97 @@
+BanIP
+
+OBJECTIFS:
+- En cas de reboot, recharger la liste des IPs à bannir (listées dans 1 fichier) par IPTABLES dans une 'userchain'
+
+PSEUDO-CODE:
+- tester présence fichier IPs
+-- sinon exit ()
+- tester présence userchain
+-- sinon créer une user-chain:
+- tableau IPs de fichiers
+- boucle IP (i)
+-- tester si IP déjà présentes (bannies) dans userchain
+--- sinon bannir IP + msg1
+--- si oui msg2
+- fin boucle IP
+msg3
+
+besoin de:
+-fichier liste-ips
+-script bash:
+
+iptables -N userchain
+iptables -F userchain
+iptables -X userchain vider et supprimer userchain
+
+
+#!/bin/bash
+#
+machaine = `Bad-Guys`
+liste = $1
+#
+# "Bad-Guys" présent dans iptables?
+#
+if [ chain_exists($machaine) ]; then
+echo "Chaîne Bad-Guys présente [OUI]
+else
+echo "Chaîne Bad-Guys présente [NON]
+echo "Création chaîne Bad-Guys [OUI]"
+chain_create($machaine)
+fi
+#
+#########
+Parse liste IPs
+#########
+# IP Présente dans chaîne oui/non
+# oui: ne rien faire; afficher "déjà bannies"
+# non: bannir
+#########
+#bannir ips
+for i in `cat ips.txt`;do iptables -A bad-ips -s $i -j DROP; done
+
+#verif ip présente ou non
+$ cat `which spamblock.sh`
+
+if [ $# = 1 ]; then
+LOOKUP=`sudo iptables -nL | grep $1`
+if [ -z "$LOOKUP" ]; then
+echo Blocking $1
+sudo iptables -v -A INPUT -s $1 -j DROP
+else
+echo ALREADY BLOCKED
+echo $LOOKUP
+fi
+else
+echo Must get exactly 1 IP address to spam block
+fi
+
+#Vérifier si userchain existe
+chain_exists()
+{
+[ $# -lt 1 -o $# -gt 2 ] && {
+echo "Usage: chain_exists <chain_name> [table]" >&2
+return 1
+}
+local chain_name="$1" ; shift
+[ $# -eq 1 ] && local table="--table $1"
+iptables $table -n --list "$chain_name" >/dev/null 2>&1
+}
+
+regex IP
+grep -E "^(([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])\.){3}([0-9][0-9]?|[0-1][0-9][0-9]|[2][0-4][0-9]|[2][5][0-5])$"
+
+grep -o que la partie de la ligne
+find chemin quoi
+
+$0 correspond au nom du script lancé, $1 correspond au premier argument, $2 au deuxième argument ...
+$# a pour valeur le nombre total de paramètres ($0 compris) passés au script
+$? a pour valeur le code de retour de la dernière commande exécutée dans le shell
+$@ pour récupérer la concaténation de tous les paramètres, en les séparant par un espace
+
+SOURCES:
+http://www.trustonme.net/didactels/148.html
+http://www.patpro.net/blog/index.php/2006/01/29/9-quelques-notions-sur-les-boucles-dans-bash/
+http://charlieharvey.org.uk/page/iptables_linux_spam_blocking_bash_script/
+http://stackoverflow.com/questions/10775863/best-way-to-check-if-a-iptables-userchain-exist
+
