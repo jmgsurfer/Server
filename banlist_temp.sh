@@ -12,12 +12,18 @@ echo "Nombre de fois IP bannies par fail2ban"
 cat fin-results.txt
 rm *.tmp
 #
-for line in fin-results.txt
+while read line
   do
-    j = line | cut -d":" -f1
-    k = line | cut -d":" -f2
-    if [ $j < 5 ]; then next; fi
-    if [ grep -o -E $k banned.txt ]; then next; fi
-    iptables -I INPUT 1 -s $k -j DROP
-  done
-
+    # get occurence Nb of IP
+    j=$(echo "$line" | cut --delimiter=":" --fields=1)
+    # get IP
+    k=$(echo "$line" | cut --delimiter=":" --fields=2)
+    if [ $j -lt 2 ]; then continue; fi
+    # Test if IP is present in banned.txt, meaning already banned
+    grep -o -E $k banned.txt
+    success=$?
+    if [ $success -ne 0 ]; then continue; fi
+    echo $j
+    echo $k
+#    iptables -I INPUT 1 -s $k -j DROP
+  done < fin-results.txt
