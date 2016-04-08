@@ -8,8 +8,8 @@ cat banned.tmp | sort | uniq > sort-banned.tmp
 #
 for i in `cat sort-banned.tmp`;do res=`grep -c -E "$i" banned.tmp`; echo "$res:$i" >> results.tmp;done
 sort -r results.tmp > fin-results.txt
-echo "Nombre de fois IP bannies par fail2ban"
-cat fin-results.txt
+# echo "Nombre de fois IP bannies par fail2ban"
+# cat fin-results.txt
 rm *.tmp
 #
 while read line
@@ -18,12 +18,21 @@ while read line
     j=$(echo "$line" | cut --delimiter=":" --fields=1)
     # get IP
     k=$(echo "$line" | cut --delimiter=":" --fields=2)
-    if [ $j -lt 2 ]; then continue; fi
+    # Adapt with correct nb: here 1 for testing, recommanded 5
+    if [ $j -lt 1 ]
+    then
+      continue
+    fi
     # Test if IP is present in banned.txt, meaning already banned
-    grep -o -E $k banned.txt
+    grep -o -E $k banned.txt > /dev/null
     success=$?
-    if [ $success -ne 0 ]; then continue; fi
-    echo $j
-    echo $k
-#    iptables -I INPUT 1 -s $k -j DROP
+    if [ $success -eq 0 ]
+    then
+      echo "[KO] - $k is already blocked."
+      continue
+    fi
+    # Process iptables blocking
+    # iptables -I INPUT 1 -s $k -j DROP
+    echo $k >> iptables_ip.txt
+    echo "[OK] - $k has just been blocked."
   done < fin-results.txt
